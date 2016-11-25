@@ -1,6 +1,7 @@
 package cihuo;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -17,7 +18,7 @@ import com.itextpdf.text.pdf.parser.TextExtractionStrategy;
 
 public class DocAnalyzer {
 
-	private static final String CONFIGFILE = "/config.properties";
+	private static final String CONFIGFILE = "/main/resources/config.properties";
 
 	// private static final String RESULTFILE = "./result.txt";
 
@@ -29,7 +30,8 @@ public class DocAnalyzer {
 		Properties prop = new Properties();
 		try {
 			if (args != null && args.length > 0) {
-				prop.load(DocAnalyzer.class.getResourceAsStream(args[0]));
+				String configPath = args[0];
+				prop.load(new FileInputStream(configPath));
 			}else{
 				prop.load(DocAnalyzer.class.getResourceAsStream(CONFIGFILE));
 			}
