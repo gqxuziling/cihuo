@@ -3,13 +3,16 @@ package cihuo;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.parser.PdfReaderContentParser;
@@ -38,6 +41,7 @@ public class DocAnalyzer {
 
 			String SOURCEFOLDER = prop.getProperty("SOURCEFOLDER");
 			String SPECIALWORDS = prop.getProperty("SPECIALWORDS");
+			String OUTPUTFOLDER = prop.getProperty("OUTPUTFOLDER");
 			int MINCOUNT = Integer.parseInt(prop.getProperty("MINCOUNT"));
 			int COUNT_OF_WORDS = Integer.parseInt(prop.getProperty("COUNT_OF_WORDS"));
 
@@ -71,18 +75,31 @@ public class DocAnalyzer {
 							return;
 					}
 				}
+
+				File outputFolder = new File(OUTPUTFOLDER);
+				if(!outputFolder.exists()){
+					outputFolder.mkdirs();
+				}
+				String resultFile = outputFolder.getAbsolutePath() + File.separator + "resultOf" + COUNT_OF_WORDS + "word.csv";
+
+				FileWriter fw = new FileWriter(resultFile);
+				StringBuilder sb = new StringBuilder();
+				sb.append("cihuo,frequency\n");
 				// output
-				resultMap
-						.entrySet()
-						.stream()
+				List<Entry<String, Long>> result = resultMap.entrySet()
+						.parallelStream()
 						.filter(x -> allAlpha.test(x.getKey()))
 						.filter(x -> withSpecialWords.test(x.getKey()))
 						.filter(x -> x.getValue() >= MINCOUNT)
 						.sorted(Map.Entry.comparingByValue())
-						.forEach(
-								x -> System.out.println(x.getKey() + "="
-										+ x.getValue()));
+						.collect(Collectors.toList());
 
+				for(Entry<String, Long> x:result){
+					sb.append(x.getKey() + "," + x.getValue() + "\n");
+				}
+
+				fw.write(sb.toString());
+				fw.close();
 				long end = System.currentTimeMillis();
 				System.out.println("Time cost: " + (end - start) / 1000
 						+ " seconds");
